@@ -1,0 +1,20 @@
+[package]
+name = "honk-subsribe-web"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+gloo-net = { version = "0.6", features = ["http"] }
+leptos = { version = "0.8.8", features = ["csr"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+wasm-bindgen-futures = "0.4"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3.104", features = ["Clipboard", "Document", "Element", "HtmlDocument", "HtmlTextAreaElement", "Location", "Navigator", "Node", "Storage", "Window"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

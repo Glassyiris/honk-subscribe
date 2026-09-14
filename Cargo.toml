@@ -1,0 +1,50 @@
+
+[package]
+name = "honk-subsribe"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-only"
+description = "Subscription aggregation and node operations panel built on honk crates"
+
+[dependencies]
+anyhow = "1"
+async-graphql = { version = "7", features = ["chrono", "uuid"] }
+async-graphql-axum = "7"
+axum = { version = "0.8", features = ["macros"] }
+base64 = "0.23"
+chrono = { version = "0.4", features = ["serde"] }
+honk-config = { git = "https://github.com/Glassyiris/honk", rev = "8ffc91a7ace173e9c90856172b56fe1157e650d5", package = "honk-config" }
+honk-core = { git = "https://github.com/Glassyiris/honk", rev = "8ffc91a7ace173e9c90856172b56fe1157e650d5", package = "honk-core", default-features = false, optional = true }
+honk-outbound = { git = "https://github.com/Glassyiris/honk", rev = "8ffc91a7ace173e9c90856172b56fe1157e650d5", package = "honk-outbound", features = [
+    "rprx",
+], optional = true }
+parking_lot = "0.12"
+reqwest = { version = "0.13", features = ["rustls"], default-features = false }
+rusqlite = { version = "0.40", features = ["bundled"] }
+rust-embed = { version = "8", features = ["debug-embed"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.7", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+
+[features]
+default = []
+honk-probe = ["dep:honk-core", "dep:honk-outbound"]
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+
+[patch.crates-io]
+boring-sys = { git = "https://github.com/Glassyiris/boring-sys", rev = "630d5030ee281371231f2c8c0b7206178032f62e" }
+
+[dev-dependencies]
+loom = "0.7.2"

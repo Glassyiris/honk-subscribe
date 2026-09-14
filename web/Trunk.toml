@@ -1,0 +1,5 @@
+[build]
+dist = "../static"
+public_url = "/"
+filehash = true
+minify = "never"

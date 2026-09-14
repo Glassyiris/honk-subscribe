@@ -1,0 +1,16 @@
+target
+*.db
+*.db-shm
+*.db-wal
+.codegraph
+.idea
+.omo
+static
+.debug*
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite3
+.honk-known-hosts
+/web/dist/
