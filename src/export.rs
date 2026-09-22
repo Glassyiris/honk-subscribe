@@ -819,8 +819,22 @@ fn format_host(node: &Node) -> String {
     }
 }
 
+fn tls_enabled(node: &Node) -> bool {
+    // The legacy model's optional TLS flag does not disable intrinsic protocol TLS.
+    node.tls
+        || matches!(
+            node.protocol,
+            NodeProtocol::Trojan
+                | NodeProtocol::AnyTLS
+                | NodeProtocol::Hysteria2
+                | NodeProtocol::Tuic
+                | NodeProtocol::Juicity
+        )
+        || reality_enabled(node)
+}
+
 fn tls_fields(value: &mut Map<String, Value>, node: &Node) {
-    value.insert("tls".into(), Value::from(node.tls || reality_enabled(node)));
+    value.insert("tls".into(), Value::from(tls_enabled(node)));
     let server_name = node
         .sni
         .as_deref()
@@ -899,14 +913,12 @@ fn transport_fields(value: &mut Map<String, Value>, node: &Node) {
 }
 
 fn tls_fields_sing_box(value: &mut Map<String, Value>, node: &Node) {
-    if !node.tls && node.sni.is_none() && !node.skip_cert_verify && !reality_enabled(node) {
+    let enabled = tls_enabled(node);
+    if !enabled && node.sni.is_none() && !node.skip_cert_verify {
         return;
     }
     let mut tls = Map::new();
-    tls.insert(
-        "enabled".into(),
-        Value::from(node.tls || reality_enabled(node)),
-    );
+    tls.insert("enabled".into(), Value::from(enabled));
     let server_name = node
         .sni
         .as_deref()
@@ -1017,6 +1029,38 @@ mod tests {
             sources: vec!["manual".into()],
             probes: Vec::new(),
         }]
+    }
+
+    #[test]
+    fn exports_intrinsic_tls_without_stored_tls_flag() {
+        for (protocol, mandatory) in [
+            (NodeProtocol::Trojan, true),
+            (NodeProtocol::AnyTLS, true),
+            (NodeProtocol::Hysteria2, true),
+            (NodeProtocol::Tuic, true),
+            (NodeProtocol::Juicity, true),
+            (NodeProtocol::VLess, false),
+            (NodeProtocol::VMess, false),
+        ] {
+            let mut nodes = nodes();
+            nodes[0].node.protocol = protocol;
+            nodes[0].node.tls = false;
+            nodes[0].node.sni = None;
+            let clash: serde_yaml::Value =
+                serde_yaml::from_str(&render(ExportFormat::Clash, &nodes).unwrap()).unwrap();
+            let sing_box: serde_json::Value =
+                serde_json::from_str(&render(ExportFormat::SingBox, &nodes).unwrap()).unwrap();
+            assert_eq!(
+                clash["proxies"][0]["tls"].as_bool(),
+                Some(mandatory),
+                "{protocol:?} Clash TLS"
+            );
+            assert_eq!(
+                sing_box["outbounds"][0]["tls"]["enabled"].as_bool(),
+                mandatory.then_some(true),
+                "{protocol:?} sing-box TLS"
+            );
+        }
     }
 
     #[test]

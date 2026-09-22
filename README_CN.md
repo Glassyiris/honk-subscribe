@@ -19,6 +19,8 @@
 - 订阅输出可按客户端选择：`/subscription?format=sip002`（包含 SIP003 插件参数）、`/subscription?format=sip008`、`/subscription?format=clash`、`/subscription?format=sing-box`、`/subscription?format=surge`、`/subscription?format=dae`，省略格式时默认 Clash；这些是本站聚合接口，客户端请求后由服务端统一筛选、排序并返回节点。节点页的“订阅链接”按钮会复制本站生成的完整订阅 URL。链接支持总数 `limit`、地区 `region_limit`、重复的 `provider` 参数和 `exclude_dead=1`；选中 provider 后只输出对应节点，启用数值限制时按拨测成功、稳定率、延迟和解锁状态综合排序再截断，启用 `exclude_dead=1` 时排除最近一次 latency 拨测失败的节点，未拨测节点保留。
 - 启用 provider 的 VLESS mode 探测后，使用 `cp.cloudflare.com:443` 的 QUIC 探测按 `mux-cool`、`h2mux`、`h2mux-padded`、`xudp`、`uot-v2` 顺序选择首个成功能力；全部 UDP mode 失败时保留 `legacy` 作为 TCP/兼容回退，不把它当作 UDP 能力证明。
 
+Clash 和 sing-box 导出会为 Trojan、AnyTLS、Hysteria2、TUIC、Juicity 保留协议必需的 TLS，即使历史节点模型的可选 `tls` 标记为 `false`。VMess/VLESS 的可选 TLS 和 REALITY 设置、现有认证及证书校验选项保持不变；无需重写数据库中的节点或 ID。
+
 ## 运行
 
 ```bash
